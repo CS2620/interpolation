@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>First Game</title>
+    <style>
+      *{margin:0}
+    </style>
+  </head>
+  <body>
+    <canvas id="canv"></canvas>
+    <script>
+      let canvas = document.querySelector("#canv")
+      canvas.width = window.innerWidth
+      canvas.height = window.innerHeight
+      let ctx = canvas.getContext("2d")
+
+      ctx.fillStyle = "cyan"
+      ctx.fillRect(0,0,canvas.width,canvas.height)
+
+      ctx.fillStyle = "black"
+      ctx.fillRect(100, 100, 100, 100)
+    </script>
+  </body>
+</html>

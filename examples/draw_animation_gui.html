@@ -1,0 +1,36 @@
+<html>
+<!-- Draw a square with an animated color -->
+<body>
+  <script>
+    "use strict"
+    let t = 0;
+
+    function start() {
+      //Comment out this line if you want to move the virtual camera with the mouse.
+      o.disableCameraMovement = true;
+    }
+
+    function customUpdate() {
+      t += o.secondsBetweenFrames
+    }
+
+    function draw() {
+      let r = Math.floor((Math.sin(t) + 1) * 255)
+      let g = Math.floor((Math.cos(t)+1) * 255)
+      let b = 0
+      c.fillStyle = `rgb(${r}, ${g}, ${b})`
+      c.fillRect(-10, 10, 20, 20)
+    }
+
+    function drawUI() {
+      c.font = "20px Arial"
+      c.fillStyle = "black"
+      c.fillText("t: " + t, 20, 20)
+    }
+
+  </script>
+  <script src="../game.js"></script>
+
+</body>
+
+</html>

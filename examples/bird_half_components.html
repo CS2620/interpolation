@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+  <script src="./../game.js"></script>
+  <script>
+    console.log(Math.random())
+
+    // A Scene is a container that holds instantiated game objects
+    // A Scene has a start function that instantiates manually assigned game objects
+    // A scene has a list called gameObjects that holds its game objects
+    //
+    // A GameObject is a named container that holds instantiated components
+    // A GameObject holds state (markedForDestroy)
+    // A GameObject has a list called components that holds its components
+    //
+    // A component is a named object
+    // Most component have at least one of the following methods:
+    // start(), update(), draw(), drawUI()
+    // (TransformComponent is an example of a component that does not have any of these)
+    //
+    // A game object can be generated (composed) in the following ways
+    // 1. In the scene start as the instance of a prefab
+    // 2. In a component function as the instance of a prefab
+    // 3. In the scene start as the instance of GameObject with components added
+    // 4. In a component function as the instance of GameObject with components added
+
+    class BirdController extends Component {
+      name = "birdController"
+      start() {
+        this.mcp = findGameObject("mcp").getComponentByName("mcpController")
+        this.speed = 1;
+        this.v = 0
+      }
+      update() {
+        if (this.mcp?.state != "playing")
+          return
+
+        this.v -= 9.8 * o.time; // Apply the downward force of gravity
+        if (i.getKeyDown(" "))
+          this.v = 5
+        this.transform.y += this.v * o.time;
+        this.transform.x += this.speed * o.time;
+      }
+    }
+
+    class MCPController extends Component {
+      name = "mcpController"
+      start() {
+        //Set options for ps
+        o.drawGrid = true;
+        o.drawGridInFront = true
+        o.fillColor = "cyan"
+        o.disableCameraMovement = true;
+
+        this.state = "playing"
+        this.deathTimeout = 0;
+        this.maxDeathTimeout = 1;
+        this.timeBetweenPipes = 3;
+        this.lastPipeTime = this.timeBetweenPipes;
+        this.pipeSpawnX = 5
+        this.pipeOpening = 4
+        this.pipeRadius = .5
+        this.previousPipes = 0 //How many pipes have we removed
+      }
+
+      update() {
+        let bird = findGameObject("bird");
+        if (!bird) return;
+        if (this?.state != "playing") {
+          this.deathTimeout += o.secondsBetweenFrames;
+          if (this.deathTimeout > this.maxDeathTimeout) {
+            changeScene(0);
+          }
+          else {
+            let percent = Math.min(1, 2 * this.deathTimeout / (1 * this.maxDeathTimeout))
+            zoom(interp(percent, 10, 1))
+              .lookAt(bird.transform.x, interp(percent, 5, bird.transform.y))
+          }
+          return
+        }
+
+        zoom(10).lookAt(bird.transform.x, 5);
+
+        
+        this.lastPipeTime += o.secondsBetweenFrames;
+        if (this.lastPipeTime > this.timeBetweenPipes) {
+          let middle = Math.random() * 6 + 2;
+          let gap = 4;
+          this.addPipes(middle, gap, this.pipeSpawnX + bird.transform.x)
+          this.lastPipeTime = 0;
+        }
+
+        //Now check for collisions
+        for (const pipe of findGameObjects("pipe")) {
+          if (collisionRectRect(bird.transform.x, bird.transform.y, bird.transform.sx, bird.transform.sy,
+            pipe.transform.x, pipe.transform.y, pipe.transform.sx, pipe.transform.sy)) {
+            this.state = "dying"
+          }
+        }
+
+        if (bird.transform.y - bird.transform.sy <= 0 || bird.transform.y + bird.transform.sy >= 10) {
+          //You hit the ground or the top
+          this.state = "dying"
+        }
+      }
+      addPipes(middle, gap, x) {
+        let pipe = new PipePrefab()
+        pipe.transform.x = x;
+        pipe.transform.y = 10;
+        pipe.transform.sx = this.pipeRadius;
+        pipe.transform.sy = 10 - middle - gap / 2;
+        getGameObjects().push(pipe)
+
+        pipe = new PipePrefab()
+        pipe.transform.x = x;
+        pipe.transform.y = 0;
+        pipe.transform.sx = this.pipeRadius;
+        pipe.transform.sy = middle - gap / 2;
+        getGameObjects().push(pipe)
+      }
+    }
+
+    class FirstSceneMCPComponent extends Component {
+      name = "firstSceneMCPComponent"
+      start() {
+        this.timer = 0;
+      }
+      update() {
+        this.timer += o.secondsBetweenFrames;
+        if (this.timer > 3) {
+          changeScene(1)
+        }
+      }
+    }
+
+    class WelcomeTextPrefab extends GameObject {
+      name = "welcomeTextPrefab"
+      start() {
+        let textComponentInstance = new TextComponent();
+        textComponentInstance.text = "Welcome to the Game"
+        this.addComponent(textComponentInstance);
+      }
+    }
+
+    class PipePrefab extends GameObject {
+      name = "pipe"
+      start() {
+        let rectangleComponentInstance = new RectangleComponent()
+        rectangleComponentInstance.fillColor = "Green"
+        this.addComponent(rectangleComponentInstance);
+      }
+    }
+
+    class BirdPrefab extends GameObject {
+      name = "bird"
+      start() {
+        this.transform.x = 0;
+        this.transform.y = 5;
+        this.transform.sx = .25;
+        this.transform.sy = .25;
+
+        this.addComponent(new BirdController());
+
+        let rectangleComponentInstance = new RectangleComponent()
+        rectangleComponentInstance.fillColor = "blue"
+        this.addComponent(rectangleComponentInstance);
+      }
+    }
+
+    class MCPPrefab extends GameObject {
+      name = "mcp"
+      start() {
+        this.addComponent(new MCPController());
+      }
+    }
+
+    class FirstSceneMCPPrefab extends GameObject {
+      name = "firstSceneMCP"
+      start() {
+        this.addComponent(new FirstSceneMCPComponent())
+      }
+    }
+
+    let scenes = [
+      {
+        start() {
+          this.gameObjects = [new FirstSceneMCPPrefab(), new WelcomeTextPrefab()]
+        }
+      },
+      {
+        start() {
+          this.gameObjects = [new MCPPrefab(), new BirdPrefab()];
+        },
+      }
+    ]
+  </script>
+
+</body>
+
+</html>

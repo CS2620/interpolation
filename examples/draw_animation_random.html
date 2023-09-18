@@ -1,0 +1,27 @@
+<html>
+<!-- Draw a square with a random color -->
+<body>
+  <script>
+    "use strict"
+
+    function start() {
+      //Comment out this line if you want to move the virtual camera with the mouse.
+      //o.disableCameraMovement = true;
+    }
+
+    function draw() {
+      c.fillStyle="black"
+      
+      let r = Math.floor(Math.random() * 255)
+      let g = Math.floor(Math.random() * 255)
+      let b = Math.floor(Math.random() * 255)
+      c.fillStyle = `rgb(${r}, ${g}, ${b})`
+      c.fillRect(-10, 10, 20, 20)
+    }
+
+  </script>
+  <script src="../game.js"></script>
+
+</body>
+
+</html>

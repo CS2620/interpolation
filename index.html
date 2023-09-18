@@ -1,0 +1,129 @@
+<html>
+<!-- Draw a square with a random color -->
+
+<body>
+  <script>
+    "use strict"
+    let f_x = x => x;
+
+    function start() {
+      o.drawGrid = true;
+      o.fillColor = "darkgray"
+    }
+
+    function interper(percent, type) {
+      let floatValue = 0;
+      if (type == 0) {
+        //Fill nearest neighbor
+        if (percent >= .5) {
+          floatValue = 1
+        }
+        else {
+          floatValue = 0;
+        }
+      }
+      else if (type == 1) {
+        floatValue = percent
+
+      }
+      else if (type == 2) {
+        floatValue = percent
+      }
+      return floatValue;
+    }
+
+    function draw() {
+      c.lineWidth = 5 / o.cameraZoom;
+
+      //k is the algorithm index
+      for (let k = 0; k < 3; k++) {
+        let xStart = k * 8;
+
+
+        for (let i = 0; i < 5; i++) {
+          let a = i + 1 //How many pixels apart are the ends?
+          let fillPixels = a - 1 //How many pixels do we need to generate in between?
+
+
+          //Value for the line
+          let startX = xStart + .5;
+          let startY = -a
+          let endX = xStart + a + .5;
+          let endY = -a + 1;
+
+          //Draw the starting white pixel
+          $$.fi("black").b().fillRect(xStart + 0, -a, 1, 1).f();
+          $$.fi("blue").b().circle(startX, startY, .1).f();
+
+
+          let lastPercent = 0;
+          for (let j = 0; j <= fillPixels; j++) {
+            let color = "lightgray"
+            let floatValue = 0;
+
+            let percent = (j + 1) / (fillPixels + 1)
+            floatValue = interper(percent, k);
+            let lastFloatValue = interper(lastPercent, k);
+
+
+
+            color = `rgb(${floatValue * 255},${floatValue * 255},${floatValue * 255})`
+
+            $$.fi(color).b().fillRect(xStart + j + 1, -a, 1, 1).f();
+            //Draw the green circle
+            $$.fi("green").b().circle(xStart + j + 1 + .5, -a + floatValue, .1).f();
+            //Draw the green line to the previous pixel
+            if (k == 0 && lastFloatValue != floatValue) {
+              $$.st("red").b().m(xStart + j + .5+.5, -a + floatValue).l(xStart + j + .5 + 1, -a + floatValue).s();
+              $$.st("red").b().m(xStart + j + .5+.5, -a + lastFloatValue).l(xStart + j + .5 + .5, -a + floatValue).s();
+              $$.st("red").b().m(xStart + j + .5, -a + lastFloatValue).l(xStart + j + .5 + .5, -a + lastFloatValue).s();
+
+            }
+            else {
+              $$.st("red").b().m(xStart + j + .5, -a + lastFloatValue).l(xStart + j + .5 + 1, -a + floatValue).s();
+            }
+            lastPercent = percent;
+          }
+
+
+          //Draw the ending black pixel
+          //$$.fi("white").b().fillRect(xStart + a, -a, 1, 1).f();
+          //$$.fi("red").b().circle(endX, endY, .1).f();
+          //$$.st("green").b().m(startX, startY).l(endX, endY).s();
+
+
+          //Draw the color lines
+          if (k == 0) {
+
+          }
+          else if (k == 1) {
+
+          }
+          else {
+
+          }
+        }
+      }
+    }
+
+    function drawUI() {
+      $$.fo("20px Arial").fi("white")
+      $$.text("Mouse X in screen space: " + o.lastMouseX, 60, 60)
+      $$.text("Mouse Y in screen space: " + o.lastMouseY, 60, 80)
+
+      let worldX, worldY;
+      [worldX, worldY] = toWorldSpace(o.lastMouseX, o.lastMouseY)
+      $$.text("Mouse X in world space:" + worldX, 60, 100)
+      $$.text("Mouse Y in world space:" + worldY, 60, 120)
+
+      $$.text("Camera Zoom: " + o.cameraZoom, 60, 140);
+      $$.text("Camera Center X: " + o.cameraCenterX, 60, 160)
+      $$.text("Camera Center Y: " + o.cameraCenterY, 60, 180)
+    }
+
+  </script>
+  <script src="./game.js"></script>
+
+</body>
+
+</html>

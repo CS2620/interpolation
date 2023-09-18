@@ -1,0 +1,38 @@
+<html>
+<!-- Draw a square with a random color -->
+
+<body>
+  <script>
+    "use strict"
+    let f_x = x => x;
+
+    function start() {
+      o.drawGrid = true;
+      o.fillColor = "black"
+    }
+
+    function draw() {
+      $$.st("red").b().m(0, 0).l(100, 100).s();
+    }
+
+    function drawUI() {
+      $$.fo("20px Arial").fi("white")
+      $$.text("Mouse X in screen space: " + o.lastMouseX, 60, 60)
+      $$.text("Mouse Y in screen space: " + o.lastMouseY, 60, 80)
+
+      let worldX, worldY;
+      [worldX, worldY] = o.toWorldSpace(o.lastMouseX, o.lastMouseY)
+      $$.text("Mouse X in world space:" + worldX, 60, 100)
+      $$.text("Mouse Y in world space:" + worldY, 60, 120)
+
+      $$.text("Camera Zoom: " + o.cameraZoom, 60, 140);
+      $$.text("Camera Center X: " + o.cameraCenterX, 60, 160)
+      $$.text("Camera Center Y: " + o.cameraCenterY, 60, 180)
+    }
+
+  </script>
+  <script src="../game.js"></script>
+
+</body>
+
+</html>
