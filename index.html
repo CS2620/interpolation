@@ -24,103 +24,109 @@
       } else {
         floatValue = 0;
       }
-    } else if (type === 1) {
+    } else if (type === 1    ) {
       floatValue = percent
 
     } else if (type === 2) {
-      floatValue = percent**2
+      floatValue = -.5*percent**2+1.5*percent
     }
     return floatValue;
   }
 
   function draw() {
     c.lineWidth = 5 / o.cameraZoom;
-    let margin = 2;
+    let marginY = 2;
 
     //k is the algorithm index
-    for (let k = 0; k < 3; k++) {
-      let xStart = k * 8; //Adjust the three views so they are separated in X
+    for (let interpolationAlgorithmIndex = 0; interpolationAlgorithmIndex < 3; interpolationAlgorithmIndex++) {
+      let pixelSquareLeftX = interpolationAlgorithmIndex * 8; //Adjust the three views so they are separated in X
 
       //How many samples to draw?
-      let sampleCount = 5;
-      for (let i = 0; i < sampleCount; i++) {
-        let a = i + 1 //How many pixels apart are the ends?
-        let fillPixels = a - 1 //How many pixels do we need to generate in between?
+      let maxSeparation = 5;
+      for (let separationIndex = 0; separationIndex < maxSeparation; separationIndex++) {
+        let pixelDifference = separationIndex + 1 //How many pixels apart are the ends?
+        let fillPixels = pixelDifference - 1 //How many pixels do we need to generate in between?
 
         //Value for the line
-        let startX = xStart + .5;
-        let startY = -a * margin
+        let pixelSquareMiddleX = pixelSquareLeftX + .5;
+        let pixelSquareBottomY = -pixelDifference * marginY
 
         //Draw the starting white pixel
-        $$.fi("black").b().fillRect(xStart + 0, -a * margin, 1, 1).f();
+        $$.fi("black").b().fillRect(pixelSquareLeftX + 0, -pixelDifference * marginY, 1, 1).f();
         //Draw the value of the first pixel
-        if (k === 0) {
-          $$.fi("blue").b().fillRect(startX - .5, startY - .05, 1, .1).f();
-        } else if (k === 1 || k === 2) {
-          $$.fi("blue").b().circle(startX, startY, .1).f();
-
+        if (interpolationAlgorithmIndex === 0) {
+          $$.fi("blue").b().fillRect(pixelSquareLeftX, pixelSquareBottomY - .05, 1, .1).f();
+        } else if (interpolationAlgorithmIndex === 1 || interpolationAlgorithmIndex === 2) {
+          $$.fi("blue").b().circle(pixelSquareMiddleX, pixelSquareBottomY, .1).f();
         }
 
 
         let lastPercent = 0;
-        for (let j = 0; j <= fillPixels; j++) {
-          let color = "lightgray"
-          let floatValue = 0;
+        for (let fillPixelIndex = 0; fillPixelIndex <= fillPixels; fillPixelIndex++) {
+          let pixelSquareColor = "lightgray"
+          let floatValueThisPixel = 0;
 
-          let percent = (j + 1) / (fillPixels + 1)
-          floatValue = interpolation(percent, k);
-          let lastFloatValue = interpolation(lastPercent, k);
+          let percent = (fillPixelIndex + 1) / (fillPixels + 1)
+          floatValueThisPixel = interpolation(percent, interpolationAlgorithmIndex);
+          let floatValueLastPixel = interpolation(lastPercent, interpolationAlgorithmIndex);
 
-          color = `rgb(${floatValue * 255},${floatValue * 255},${floatValue * 255})`
+          pixelSquareColor = `rgb(${floatValueThisPixel * 255},${floatValueThisPixel * 255},${floatValueThisPixel * 255})`
 
-          $$.fi(color).b().fillRect(xStart + j + 1, -a * margin, 1, 1).f();
+          $$.fi(pixelSquareColor).b().fillRect(pixelSquareLeftX + fillPixelIndex + 1, -pixelDifference * marginY, 1, 1).f();
           //Draw the green circle
-          let topY = -a * margin + floatValue;
-          if (k === 0) {
-            $$.fi("green").b().fillRect(xStart + j + 1 + .5 - .5, topY - .05, 1, .1).f();
-          } else if (k === 1 || k === 2) {
-            $$.fi("green").b().circle(xStart + j + 1 + .5, topY, .1).f();
+          let topY = -pixelDifference * marginY + floatValueThisPixel;
+          if (interpolationAlgorithmIndex === 0) {
+            $$.fi("green").b().fillRect(pixelSquareLeftX + fillPixelIndex + 1 + .5 - .5, topY - .05, 1, .1).f();
+          } else if (interpolationAlgorithmIndex === 1 || interpolationAlgorithmIndex === 2) {
+            $$.fi("green").b().circle(pixelSquareLeftX + fillPixelIndex + 1 + .5, topY, .1).f();
           }
           //Draw the green line to the previous pixel
-          let leftMostX = xStart + j + .5;
-          let middleX = leftMostX + .5;
-          let bottomY = -a * margin + lastFloatValue;
-          let rightMostX = leftMostX + 1;
+          let previousPixelCenterX = pixelSquareLeftX + fillPixelIndex + .5;
+          let currentPixelCenterX = previousPixelCenterX + 1;
 
           c.setLineDash([.2, .2])
 
+          let bottomY = -pixelDifference * marginY + floatValueLastPixel;
 
-          if (k === 0 && lastFloatValue !== floatValue) {
+          if (interpolationAlgorithmIndex === 0 && floatValueLastPixel !== floatValueThisPixel) {
 
-            if (a % 2 === 0) {
-              middleX += .5
-              rightMostX+=.5
+            let currentPreviousBoundaryX = previousPixelCenterX + .5;
+
+            if (pixelDifference % 2 === 0) {
+              currentPreviousBoundaryX += .5
+              currentPixelCenterX += .5
             }
             $$.st("red").b()
-                .m(leftMostX, bottomY)
-                .l(middleX, bottomY)
-                .l(middleX, topY)
-                .l(rightMostX, topY).s();
+                .m(previousPixelCenterX, bottomY)
+                .l(currentPreviousBoundaryX, bottomY)
+                .l(currentPreviousBoundaryX, topY)
+                .l(currentPixelCenterX, topY).s();
 
           } else {
-            if (k === 2) {
-              let inc = .5;
-              for (let i = 0; i < 1; i += inc) {
-                let diff = rightMostX - leftMostX;
-
-                let nowX = leftMostX + (rightMostX - leftMostX) * i;
-                let nextX = leftMostX + (rightMostX - leftMostX) * (i + inc)
-
-                let nowI = interpolation(percent+i/a, 2)
-                let nextI = interpolation(percent+(i+inc)/a, 2)
-                let nowY = nowI+(-a * margin)-1/a
-                let nextY = nextI+(-a * margin)-1/a
-
-                $$.st("red").b().m(nowX, nowY).l(nextX, nextY).s();
-
-              }
-            } else if (k === 1) {
-              $$.st("red").b().m(leftMostX, bottomY).l(rightMostX, topY).s();
+            // if (interpolationAlgorithmIndex === 2) {
+            //   let intrapixelStepSize = .5;
+            //   for (let intrapixelValue = 0; intrapixelValue < 1; intrapixelValue += intrapixelStepSize) {
+            //     let nowX = previousPixelCenterX + (currentPixelCenterX - previousPixelCenterX) * intrapixelValue;
+            //     let nextX = previousPixelCenterX + (currentPixelCenterX - previousPixelCenterX) * (intrapixelValue + intrapixelStepSize)
+            //
+            //     let floatValueStart = interpolation(floatValueThisPixel + intrapixelValue, 2)
+            //
+            //
+            //     let nowI = interpolation(percent+intrapixelValue/pixelDifference, 2)
+            //     let nextI = interpolation(percent+(intrapixelValue+intrapixelStepSize)/pixelDifference, 2)
+            //     let nowY = nowI+(-pixelDifference * marginY)-1/pixelDifference
+            //     let nextY = nextI+(-pixelDifference * marginY)-1/pixelDifference
+            //
+            //     $$.st("red").b().m(nowX, nowY).l(nextX, nextY).s();
+            //
+            //   }
+            // } else
+            if(interpolationAlgorithmIndex === 2){
+              //$$.fi("red").b().circle(pixelSquareLeftX + fillPixelIndex + 1 + .5, topY, .1).f();
+              $$.st("cyan").b().m(pixelSquareLeftX-1 + fillPixelIndex + 1 + .5, -pixelDifference * marginY + floatValueLastPixel).l(pixelSquareLeftX + fillPixelIndex + 1 + .5, topY).s()
+            }
+            if (interpolationAlgorithmIndex === 1) {
+              $$.st("red").b().m(previousPixelCenterX, bottomY).l(currentPixelCenterX, topY).s();
             }
           }
           c.setLineDash([])

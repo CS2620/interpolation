@@ -67,7 +67,7 @@ function bootDocument() {
 
   //Set the title programmatically
 
-  document.title = "PSM";
+  document.title = "Interpolation";
 
 
   let scripts = [
