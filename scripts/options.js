@@ -12,7 +12,7 @@ function bootOptions() {
   //Set the default camera zoom
   o.maxZoom = 100;
   o.minZoom = .1;
-  o.cameraZoom = 100;
+  o.cameraZoom = 80;
   //Set the default background color
   o.fillColor = "lightgray";
   //Set the frame rate
@@ -23,9 +23,9 @@ function bootOptions() {
   o.disableCameraMovement = false;
   o.tickOne = false;
   o.drawGrid = false;
-  o.drawGridInFront = true; // True to draw the grid after everything else
+  o.drawGridInFront = false; // True to draw the grid after everything else
 
-
+  o.abort = false; //True if we need to stop the main loop, used for finding bugs
   
 }
 

@@ -2,127 +2,151 @@
 <!-- Draw a square with a random color -->
 
 <body>
-  <script>
-    "use strict"
-    let f_x = x => x;
+<script>
+  "use strict"
 
-    function start() {
-      o.drawGrid = true;
-      o.fillColor = "darkgray"
+  function start() {
+    console.log(Math.random())
+    o.drawGrid = true;
+    o.drawGridInFront = true;
+    o.cameraCenterX = 830
+    o.cameraCenterY = 400
+    o.fillColor = "darkgray"
+  }
+
+
+  function interpolation(percent, type) {
+    let floatValue = 0;
+    if (type === 0) {
+      //Fill nearest neighbor
+      if (percent >= .5) {
+        floatValue = 1
+      } else {
+        floatValue = 0;
+      }
+    } else if (type === 1) {
+      floatValue = percent
+
+    } else if (type === 2) {
+      floatValue = percent**2
     }
+    return floatValue;
+  }
 
-    function interper(percent, type) {
-      let floatValue = 0;
-      if (type == 0) {
-        //Fill nearest neighbor
-        if (percent >= .5) {
-          floatValue = 1
-        }
-        else {
-          floatValue = 0;
-        }
-      }
-      else if (type == 1) {
-        floatValue = percent
+  function draw() {
+    c.lineWidth = 5 / o.cameraZoom;
+    let margin = 2;
 
-      }
-      else if (type == 2) {
-        floatValue = percent
-      }
-      return floatValue;
-    }
+    //k is the algorithm index
+    for (let k = 0; k < 3; k++) {
+      let xStart = k * 8; //Adjust the three views so they are separated in X
 
-    function draw() {
-      c.lineWidth = 5 / o.cameraZoom;
+      //How many samples to draw?
+      let sampleCount = 5;
+      for (let i = 0; i < sampleCount; i++) {
+        let a = i + 1 //How many pixels apart are the ends?
+        let fillPixels = a - 1 //How many pixels do we need to generate in between?
 
-      //k is the algorithm index
-      for (let k = 0; k < 3; k++) {
-        let xStart = k * 8;
+        //Value for the line
+        let startX = xStart + .5;
+        let startY = -a * margin
 
-
-        for (let i = 0; i < 5; i++) {
-          let a = i + 1 //How many pixels apart are the ends?
-          let fillPixels = a - 1 //How many pixels do we need to generate in between?
-
-
-          //Value for the line
-          let startX = xStart + .5;
-          let startY = -a
-          let endX = xStart + a + .5;
-          let endY = -a + 1;
-
-          //Draw the starting white pixel
-          $$.fi("black").b().fillRect(xStart + 0, -a, 1, 1).f();
+        //Draw the starting white pixel
+        $$.fi("black").b().fillRect(xStart + 0, -a * margin, 1, 1).f();
+        //Draw the value of the first pixel
+        if (k === 0) {
+          $$.fi("blue").b().fillRect(startX - .5, startY - .05, 1, .1).f();
+        } else if (k === 1 || k === 2) {
           $$.fi("blue").b().circle(startX, startY, .1).f();
 
-
-          let lastPercent = 0;
-          for (let j = 0; j <= fillPixels; j++) {
-            let color = "lightgray"
-            let floatValue = 0;
-
-            let percent = (j + 1) / (fillPixels + 1)
-            floatValue = interper(percent, k);
-            let lastFloatValue = interper(lastPercent, k);
+        }
 
 
+        let lastPercent = 0;
+        for (let j = 0; j <= fillPixels; j++) {
+          let color = "lightgray"
+          let floatValue = 0;
 
-            color = `rgb(${floatValue * 255},${floatValue * 255},${floatValue * 255})`
+          let percent = (j + 1) / (fillPixels + 1)
+          floatValue = interpolation(percent, k);
+          let lastFloatValue = interpolation(lastPercent, k);
 
-            $$.fi(color).b().fillRect(xStart + j + 1, -a, 1, 1).f();
-            //Draw the green circle
-            $$.fi("green").b().circle(xStart + j + 1 + .5, -a + floatValue, .1).f();
-            //Draw the green line to the previous pixel
-            if (k == 0 && lastFloatValue != floatValue) {
-              $$.st("red").b().m(xStart + j + .5+.5, -a + floatValue).l(xStart + j + .5 + 1, -a + floatValue).s();
-              $$.st("red").b().m(xStart + j + .5+.5, -a + lastFloatValue).l(xStart + j + .5 + .5, -a + floatValue).s();
-              $$.st("red").b().m(xStart + j + .5, -a + lastFloatValue).l(xStart + j + .5 + .5, -a + lastFloatValue).s();
+          color = `rgb(${floatValue * 255},${floatValue * 255},${floatValue * 255})`
 
+          $$.fi(color).b().fillRect(xStart + j + 1, -a * margin, 1, 1).f();
+          //Draw the green circle
+          let topY = -a * margin + floatValue;
+          if (k === 0) {
+            $$.fi("green").b().fillRect(xStart + j + 1 + .5 - .5, topY - .05, 1, .1).f();
+          } else if (k === 1 || k === 2) {
+            $$.fi("green").b().circle(xStart + j + 1 + .5, topY, .1).f();
+          }
+          //Draw the green line to the previous pixel
+          let leftMostX = xStart + j + .5;
+          let middleX = leftMostX + .5;
+          let bottomY = -a * margin + lastFloatValue;
+          let rightMostX = leftMostX + 1;
+
+          c.setLineDash([.2, .2])
+
+
+          if (k === 0 && lastFloatValue !== floatValue) {
+
+            if (a % 2 === 0) {
+              middleX += .5
+              rightMostX+=.5
             }
-            else {
-              $$.st("red").b().m(xStart + j + .5, -a + lastFloatValue).l(xStart + j + .5 + 1, -a + floatValue).s();
+            $$.st("red").b()
+                .m(leftMostX, bottomY)
+                .l(middleX, bottomY)
+                .l(middleX, topY)
+                .l(rightMostX, topY).s();
+
+          } else {
+            if (k === 2) {
+              let inc = .5;
+              for (let i = 0; i < 1; i += inc) {
+                let diff = rightMostX - leftMostX;
+
+                let nowX = leftMostX + (rightMostX - leftMostX) * i;
+                let nextX = leftMostX + (rightMostX - leftMostX) * (i + inc)
+
+                let nowI = interpolation(percent+i/a, 2)
+                let nextI = interpolation(percent+(i+inc)/a, 2)
+                let nowY = nowI+(-a * margin)-1/a
+                let nextY = nextI+(-a * margin)-1/a
+
+                $$.st("red").b().m(nowX, nowY).l(nextX, nextY).s();
+
+              }
+            } else if (k === 1) {
+              $$.st("red").b().m(leftMostX, bottomY).l(rightMostX, topY).s();
             }
-            lastPercent = percent;
           }
-
-
-          //Draw the ending black pixel
-          //$$.fi("white").b().fillRect(xStart + a, -a, 1, 1).f();
-          //$$.fi("red").b().circle(endX, endY, .1).f();
-          //$$.st("green").b().m(startX, startY).l(endX, endY).s();
-
-
-          //Draw the color lines
-          if (k == 0) {
-
-          }
-          else if (k == 1) {
-
-          }
-          else {
-
-          }
+          c.setLineDash([])
+          lastPercent = percent;
         }
       }
     }
+  }
 
-    function drawUI() {
-      $$.fo("20px Arial").fi("white")
-      $$.text("Mouse X in screen space: " + o.lastMouseX, 60, 60)
-      $$.text("Mouse Y in screen space: " + o.lastMouseY, 60, 80)
+  function drawUI() {
+    $$.fo("20px Arial").fi("white")
+    $$.text("Mouse X in screen space: " + o.lastMouseX, 60, 60)
+    $$.text("Mouse Y in screen space: " + o.lastMouseY, 60, 80)
+    //
+    let worldX, worldY;
+    [worldX, worldY] = toWorldSpace(o.lastMouseX, o.lastMouseY)
+    $$.text("Mouse X in world space:" + worldX, 60, 100)
+    // $$.text("Mouse Y in world space:" + worldY, 60, 120)
+    //
+    // $$.text("Camera Zoom: " + o.cameraZoom, 60, 140);
+    // $$.text("Camera Center X: " + o.cameraCenterX, 60, 160)
+    $$.text("Camera Center Y: " + o.cameraCenterY, 60, 180)
+  }
 
-      let worldX, worldY;
-      [worldX, worldY] = toWorldSpace(o.lastMouseX, o.lastMouseY)
-      $$.text("Mouse X in world space:" + worldX, 60, 100)
-      $$.text("Mouse Y in world space:" + worldY, 60, 120)
-
-      $$.text("Camera Zoom: " + o.cameraZoom, 60, 140);
-      $$.text("Camera Center X: " + o.cameraCenterX, 60, 160)
-      $$.text("Camera Center Y: " + o.cameraCenterY, 60, 180)
-    }
-
-  </script>
-  <script src="./game.js"></script>
+</script>
+<script src="./game.js"></script>
 
 </body>
 

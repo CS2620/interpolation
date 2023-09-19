@@ -21,14 +21,23 @@ function bootLoop() {
       cs().start()
   }
   ///Start a timer
-  if (!(typeof o.tickOnce !== "undefined" && o.tickOnce)) setInterval(tick, o.millisecondsBetweenFrames); ///Initialize the timer
+  if (!(typeof o.tickOnce !== "undefined" && o.tickOnce))
+    o.intervalId = setInterval(tick, o.millisecondsBetweenFrames); ///Initialize the timer
 
 }
 
 function tick() {
-  //Update the global model
-  update();
-  drawCanvas();
+  if(o.abort){
+    clearInterval(o.intervalId)
+  }
+  try {
+    //Update the global model
+    update();
+    drawCanvas();
+  }catch(error){
+    console.error(error)
+    o.abort = true;
+  }
 }
 
 function update() {
