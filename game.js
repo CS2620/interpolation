@@ -71,14 +71,14 @@ function bootDocument() {
 
 
   let scripts = [
-    "/scripts/input.js",
-    "/scripts/options.js",
-    "/scripts/money.js",
-    "/scripts/scenes.js",
-    "/scripts/camera.js",
-    "/scripts/gameObjects.js",
-    "/scripts/collisions.js",
-    "/scripts/loop.js"
+    "./scripts/input.js",
+    "./scripts/options.js",
+    "./scripts/money.js",
+    "./scripts/scenes.js",
+    "./scripts/camera.js",
+    "./scripts/gameObjects.js",
+    "./scripts/collisions.js",
+    "./scripts/loop.js"
   ]
 
   let countLoaded = 0;
